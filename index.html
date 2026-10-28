@@ -387,6 +387,20 @@
   .progress-percent { font-size: 0.7rem; }
   footer { margin-top: 6px; font-size: 0.68rem; }
   .row-pair { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .assistant { grid-column: 1 / -1; background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-top: 8px; }
+  .assistant h2 { font-size: 0.95rem; color: var(--blue); padding: 12px 14px 0; }
+  .assistant p.lead { font-size: 0.78rem; color: var(--muted); padding: 4px 14px 8px; }
+  .prompts { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+  .prompt-btn { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 999px; padding: 6px 10px; font-size: 0.72rem; cursor: pointer; color: #0f172a; text-align: left; }
+  .prompt-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .messages { height: 220px; overflow-y: auto; padding: 10px 14px; background: #f8fafc; display: flex; flex-direction: column; gap: 8px; }
+  .msg { max-width: 88%; padding: 8px 12px; border-radius: 14px; font-size: 0.8rem; line-height: 1.4; }
+  .msg.bot { background: #fff; border: 1px solid #e2e8f0; align-self: flex-start; }
+  .msg.user { background: #0f4c81; color: #fff; align-self: flex-end; }
+  .input-area { display: flex; gap: 8px; padding: 10px 14px 12px; }
+  .input-area input { flex: 1; border: 1px solid #e2e8f0; border-radius: 999px; padding: 8px 12px; font-size: 0.82rem; }
+  .send-btn { background: #0f4c81; color: #fff; border: 0; border-radius: 999px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+  @media print { .assistant { display: none; } }
   @media print {
     .grid { display: block; }
     .row-pair { display: flex; break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px; }
@@ -585,6 +599,25 @@
       </div>
     </div>
   </div>
+
+  <section class="assistant">
+    <h2>Ask about these numbers</h2>
+    <p class="lead">A knowledge assistant for Charisse's NICE and Yext results. Ask in your own words.</p>
+    <div class="prompts">
+      <button class="prompt-btn" type="button" onclick="ask(this.textContent)">How did she do at NICE in year 1?</button>
+      <button class="prompt-btn" type="button" onclick="ask(this.textContent)">What was Yext year 1 new business against quota?</button>
+      <button class="prompt-btn" type="button" onclick="ask(this.textContent)">How did renewals land, and what does 80 percent mean?</button>
+      <button class="prompt-btn" type="button" onclick="ask(this.textContent)">How much new logo versus upsell?</button>
+      <button class="prompt-btn" type="button" onclick="ask(this.textContent)">Who did she sell to?</button>
+      <button class="prompt-btn" type="button" onclick="ask(this.textContent)">Where is this year tracking?</button>
+      <button class="prompt-btn" type="button" onclick="ask(this.textContent)">Would this transfer to a SpaceX sales role?</button>
+    </div>
+    <div class="messages" id="messages"></div>
+    <form class="input-area" onsubmit="send(); return false;">
+      <input id="query" type="text" placeholder="Ask about quota, logos, ramp, or this year" />
+      <button class="send-btn" type="submit">Ask</button>
+    </form>
+  </section>
 
   <footer>Charisse Patulot • Prepared for SpaceX sales role discussion</footer>
 </div>
@@ -810,6 +843,70 @@ function draw() {
 }
 draw();
 window.addEventListener("resize", draw);
+
+var knowledge = [
+  { keys: ["hello", "hi", "hey"], answer: "Hi. I can walk you through Charisse's quota at NICE and Yext. Ask about a year, new business, renewals, logos, or how this maps to a SpaceX sales seat." },
+  { keys: ["nice", "year 1", "870", "600", "145", "72"], answer: "In her first year at NICE she closed 870 thousand pounds. That is 145 percent of the 600 thousand pound ramp quota, and 72.5 percent of the full 1.2 million pound quota. The book was 100 percent new logo." },
+  { keys: ["year 2", "1.1", "91"], answer: "NICE year 2 she closed 1.1 million against a 1.2 million quota, so 91.7 percent. Same target as year 1, delivered once the book was established." },
+  { keys: ["renewal", "125", "retention", "80", "yext"], answer: "Yext year 1 renewals closed 3 million against a 3 million quota, which is 125 percent. On that book, 80 percent renewal equals 100 percent retention." },
+  { keys: ["new business", "952", "190", "95", "500", "yext"], answer: "Yext year 1 new business closed 952 thousand. That is 190.4 percent of the 500 thousand pound ramp quota, and 95.2 percent of the 1 million pound actual quota." },
+  { keys: ["overall", "110", "combined", "yext"], answer: "Yext year 1 overall was 110 percent across new business and renewals. New business was 952 thousand and renewals were 3 million." },
+  { keys: ["current", "827", "this year", "82", "q4", "tracking"], answer: "This year she has closed 827 thousand of new business against a 1 million quota, so 82.7 percent. She is tracking around 80 percent overall, with about 30 percent still to close in Q4." },
+  { keys: ["logo", "upsell", "new logo", "87", "100"], answer: "At NICE the revenue was 100 percent new logo. At Yext it is 87 percent new logo and 13 percent upsell. She is hunting, not only farming an existing book." },
+  { keys: ["who", "logo", "client", "buyer", "icp", "weatherbys", "barclays", "bupa"], answer: "At NICE she sold to Weatherbys Bank, CMC Markets, and a betting company. Buyers were CTO, CIO, CDO, COO, IT, contact centre, digital, and operations. At Yext the logos are IMO Car Wash, Barclays, M and S, Utilita, Nando's, and Bupa. Buyers were CMO, CDO, marketing, digital, IT, and operations." },
+  { keys: ["mix", "50", "60"], answer: "Yext year 1 was a 50/50 mix of renewals and new business. This year the mix has shifted toward new business, closer to 60/40." },
+  { keys: ["spacex", "transfer", "starlink", "role", "hire"], answer: "The motion that transfers is owning a number and opening new logos with technical and operational buyers. Full-quota attainment is the honest read: 72.5 percent of the NICE 1.2 million in year 1, 91.7 percent in year 2, 95.2 percent of the Yext 1 million new-business quota, and 125 percent on a 3 million renewal book. Ramp percentages are higher because the ramp target was smaller." },
+  { keys: ["ramp"], answer: "Ramp is the reduced year-1 target, not the full quota. NICE ramp was 600 thousand against a 1.2 million actual quota. Yext new-business ramp was 500 thousand against a 1 million actual quota. She beat both ramps, and she also shows the percentage of the real quota." }
+];
+
+function reply(q) {
+  var lower = q.toLowerCase();
+  var best = 0;
+  var bestI = -1;
+  var i = 0;
+  while (knowledge.length > i) {
+    var keys = knowledge[i].keys;
+    var score = 0;
+    var k = 0;
+    while (keys.length > k) {
+      if (lower.indexOf(keys[k]) > -1) score = score + 1;
+      k = k + 1;
+    }
+    if (score > best) {
+      best = score;
+      bestI = i;
+    }
+    i = i + 1;
+  }
+  if (best > 0) return knowledge[bestI].answer;
+  return "I can talk about NICE year 1 and year 2, Yext new business and renewals, this year's 827 thousand, new logo versus upsell, the accounts, or how it maps to a sales seat. Try one of those.";
+}
+
+function addMsg(text, isUser) {
+  var box = document.getElementById("messages");
+  var div = document.createElement("div");
+  div.className = "msg " + (isUser ? "user" : "bot");
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function ask(text) {
+  var input = document.getElementById("query");
+  input.value = text;
+  send();
+}
+
+function send() {
+  var input = document.getElementById("query");
+  var q = input.value.trim();
+  if (!q) return;
+  addMsg(q, true);
+  input.value = "";
+  addMsg(reply(q), false);
+}
+
+addMsg("Hi. Ask me anything about Charisse's quota, the logos, or how these numbers read for a sales role.", false);
 </script>
 </body>
 </html>
