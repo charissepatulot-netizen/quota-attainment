@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charisse Patulot | Quota Attainment</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --blue: #0f4c81;
+    --accent: #1d6fa5;
+    --green: #16a34a;
+    --amber: #d97706;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .container { max-width: 1040px; margin: 0 auto; }
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .name {
+    font-size: 0.95rem;
+    color: var(--blue);
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 10px 0 6px;
+    letter-spacing: -1px;
+    color: #0f172a;
+  }
+  .theme-toggle {
+    margin-top: 16px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .theme-toggle:hover { border-color: var(--blue); color: var(--blue); }
+  body.dark {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    color: #e2e8f0;
+  }
+  body.dark .card { background: #1e293b; border-color: #334155; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  body.dark .card h2 { color: #7dd3fc; }
+  body.dark .val { color: #f1f5f9; }
+  body.dark .lbl, body.dark .sub, body.dark .progress-label { color: #94a3b8; }
+  body.dark .logo-badge { background: #334155; color: #e2e8f0; border-color: #475569; }
+  body.dark .icp { background: #334155; color: #cbd5e1; }
+  body.dark .highlight { color: #cbd5e1; border-left-color: #7dd3fc; }
+  body.dark .chat-section { background: #1e293b; border-color: #334155; }
+  body.dark .messages { background: #0f172a; }
+  body.dark .msg.bot { background: #334155; color: #e2e8f0; }
+  body.dark .prompt-btn { background: #334155; color: #e2e8f0; border-color: #475569; }
+  body.dark .input-area { background: #1e293b; }
+  body.dark .input-area input { background: #0f172a; color: #e2e8f0; border-color: #475569; }
+  body.dark .theme-toggle { background: #334155; color: #e2e8f0; border-color: #475569; }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+    border-color: #cbd5e1;
+  }
+  .card h2 {
+    font-size: 1.12rem;
+    color: var(--blue);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  .val { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.5px; }
+  .pct { font-size: 1.1rem; font-weight: 600; color: var(--green); }
+  .pct.amber { color: var(--amber); }
+  .lbl { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+  .highlights {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .highlight {
+    font-size: 0.92rem;
+    color: #334155;
+    padding-left: 12px;
+    border-left: 3px solid var(--blue);
+    line-height: 1.45;
+  }
+  .progress-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 14px;
+    margin-bottom: 6px;
+  }
+  .progress-bar {
+    height: 28px;
+    background: #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+    margin: 8px 0;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #16a34a 0%, #4ade80 50%, #22c55e 100%);
+    border-radius: 14px;
+    transition: width 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 12px;
+  }
+  .progress-percent {
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .progress-bar:hover .progress-fill {
+    filter: brightness(1.05);
+  }
+  .progress-note {
+    font-size: 0.78rem;
+    color: #16a34a;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .progress-detail {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 6px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .progress-bar.expanded ~ .progress-detail {
+    max-height: 40px;
+  }
+  .progress-note {
+    font-size: 0.78rem;
+    color: #d97706;
+    font-weight: 600;
+    margin-top: 4px;
+    text-align: right;
+  }
+  .details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    color: #4b5563;
+  }
+  .card.open .details { max-height: 120px; }
+  .full { grid-column: 1 / -1; }
+  .overall-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 14px !important;
+    cursor: default;
+  }
+  .overall-bar span { font-size: 0.82rem; font-weight: 600; color: var(--blue); }
+  .overall-bar .muted { font-weight: 500; color: var(--muted); flex: 1; }
+  .overall-bar strong { font-size: 1.05rem; color: var(--green); }
+  .chart-wrap { height: 160px; }
+  .logo-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 14px 0 8px;
+  }
+  .logo-badge {
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1e293b;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+  }
+  .logo-badge:hover {
+    border-color: var(--blue);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0,82,136,0.1);
+  }
+  .icp {
+    font-size: 0.92rem;
+    color: #475569;
+    margin-top: 6px;
+    line-height: 1.6;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border-left: 3px solid var(--blue);
+  }
+  .icp strong {
+    color: var(--blue);
+  }
+  /* Chat UI - Claude / ChatGPT style */
+  .chat-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .chat-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chat-header::before {
+    content: "✦";
+    font-size: 1.1rem;
+  }
+  .messages {
+    height: 320px;
+    overflow-y: auto;
+    padding: 20px;
+    background: #fafafa;
+  }
+  .msg {
+    max-width: 80%;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-radius: 18px;
+    line-height: 1.5;
+    font-size: 0.95rem;
+    animation: fadeIn 0.3s ease;
+  }
+  .msg.bot {
+    background: var(--bot-bg);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+  }
+  .msg.user {
+    background: var(--user-bg);
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+  }
+  .prompts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    background: #f9fafb;
+  }
+  .prompt-btn {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    color: var(--text);
+    transition: all 0.15s;
+  }
+  .prompt-btn:hover {
+    border-color: var(--blue);
+    background: #f0f7ff;
+  }
+  .input-area {
+    display: flex;
+    padding: 12px 16px;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+    background: white;
+  }
+  .input-area input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border 0.2s;
+  }
+  .input-area input:focus { border-color: var(--blue); }
+  .send-btn {
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 0 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .send-btn:hover { background: var(--dark); }
+  footer {
+    text-align: center;
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  .metrics { display: flex; gap: 8px; }
+  .metric { flex: 1; min-width: 0; }
+  @page { size: A4 portrait; margin: 12mm; }
+  @media print {
+    .theme-toggle { display: none; }
+    body { background: #fff; padding: 0; }
+    .container { width: auto; max-width: none; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+  }
+  body {
+    padding: 24px 0;
+    background: #e7edf3;
+  }
+  .container {
+    width: 210mm;
+    max-width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: #fff;
+    padding: 12mm 10mm;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  }
+  header { margin-bottom: 8px; }
+  h1 { font-size: 1.45rem; margin: 2px 0; }
+  .name { font-size: 0.72rem; }
+  .sub { font-size: 0.78rem; }
+  .theme-toggle { margin-top: 4px; padding: 2px 10px; }
+  .grid { gap: 8px; margin-bottom: 8px; }
+  .card { padding: 8px 10px; border-radius: 10px; break-inside: avoid; page-break-inside: avoid; }
+  .overall-bar { break-inside: avoid; page-break-inside: avoid; }
+  .logos { padding: 6px 10px !important; }
+  .logos h2 { margin-bottom: 2px; }
+  .logos .logo-row { margin: 2px 0; }
+  .logos .logo-badge { padding: 2px 7px; font-size: 0.68rem; }
+  .logos .icp { padding: 2px 6px; margin-top: 0; }
+  .card:hover { transform: none; }
+  .card h2 { font-size: 0.82rem; margin-bottom: 6px; }
+  .val { font-size: 1.15rem; }
+  .pct { font-size: 0.72rem; }
+  .lbl { font-size: 0.68rem; }
+  .note { margin-top: 6px; font-size: 0.72rem; font-weight: 600; color: var(--green); }
+  .chart-wrap, .card .chart-wrap { height: 200px !important; }
+  .trajectory-page { break-before: page; page-break-before: always; }
+  .trajectory-page .chart-wrap { height: 480px !important; }
+  .highlights { display: flex; flex-direction: column; gap: 3px; }
+  .highlight { font-size: 0.68rem; line-height: 1.3; padding-left: 8px; }
+  .logo-row { margin: 4px 0; gap: 6px; }
+  .logo-badge { padding: 4px 8px; font-size: 0.72rem; }
+  .icp { font-size: 0.72rem; padding: 4px 8px; margin-top: 2px; line-height: 1.35; }
+  .progress-bar { height: 18px; margin: 0; }
+  .progress-percent { font-size: 0.7rem; }
+  footer { margin-top: 6px; font-size: 0.68rem; }
+  .row-pair { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media print {
+    .grid { display: block; }
+    .row-pair { display: flex; break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px; }
+    .row-pair > .card { flex: 1; min-width: 0; }
+    .full { margin-bottom: 8px; }
+    header { margin-bottom: 6px; }
+    h1 { font-size: 1.25rem; }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="name">Charisse Patulot</div>
+    <h1>Quota Attainment</h1>
+    <p class="sub">Enterprise Account Executive • NICE & Yext • Last 3 Years</p>
+    <button class="theme-toggle" onclick="document.body.classList.toggle('dark')">Toggle Dark Mode</button>
+  </header>
+
+  <div class="grid">
+    <div class="row-pair">
+    <div class="card" onclick="this.classList.toggle('open')">
+      <h2>NICE Year 1</h2>
+      <div class="metrics">
+        <div class="metric">
+          <div class="val">£870K</div>
+          <div class="lbl">Closed</div>
+        </div>
+        <div class="metric">
+          <div class="val">145%</div>
+          <div class="pct">of ramp</div>
+          <div class="lbl">£600K ramp quota</div>
+        </div>
+        <div class="metric">
+          <div class="val">72.5%</div>
+          <div class="pct amber">of actual</div>
+          <div class="lbl">£1.2M quota</div>
+        </div>
+      </div>
+      <div class="details">£870K closed. 145% of the £600K ramp quota, and 72.5% of the £1.2M actual quota.</div>
+    </div>
+
+    <div class="card" onclick="this.classList.toggle('open')">
+      <h2>NICE Year 2</h2>
+      <div class="metrics">
+        <div class="metric">
+          <div class="val">£1.1M</div>
+          <div class="pct amber">91.7%</div>
+          <div class="lbl">Closed</div>
+        </div>
+        <div class="metric">
+          <div class="val">£1.2M</div>
+          <div class="lbl">Quota</div>
+        </div>
+      </div>
+      <div class="details">£1.1M closed against a £1.2M quota (91.7%).</div>
+    </div>
+    </div>
+
+    <div class="card full logos">
+      <h2>NICE — Logos & ICP</h2>
+      <div class="logo-row">
+        <div class="logo-badge">Weatherbys Bank</div>
+        <div class="logo-badge">CMC Markets</div>
+        <div class="logo-badge">Betting Company</div>
+      </div>
+      <div class="icp"><strong>ICP:</strong> CTO · CIO · CDO · COO · IT · Contact Centre · Digital · Operations</div>
+    </div>
+
+    <div class="row-pair">
+    <div class="card" onclick="this.classList.toggle('open')">
+      <h2>Yext Year 1 — New Business</h2>
+      <div class="metrics">
+        <div class="metric">
+          <div class="val">£952K</div>
+          <div class="lbl">Closed-won</div>
+        </div>
+        <div class="metric">
+          <div class="val">190.4%</div>
+          <div class="pct">of ramp</div>
+          <div class="lbl">£500K ramp quota</div>
+        </div>
+        <div class="metric">
+          <div class="val">95.2%</div>
+          <div class="pct amber">of actual</div>
+          <div class="lbl">£1M quota</div>
+        </div>
+      </div>
+      <div class="details">£952K closed-won. 190.4% of the £500K ramp quota, and 95.2% of the £1M actual new-business quota.</div>
+    </div>
+
+    <div class="card" onclick="this.classList.toggle('open')">
+      <h2>Yext Year 1 — Renewals</h2>
+      <div class="metrics">
+        <div class="metric">
+          <div class="val">£3M</div>
+          <div class="pct">125%</div>
+          <div class="lbl">Closed</div>
+        </div>
+        <div class="metric">
+          <div class="val">£3M</div>
+          <div class="lbl">Quota</div>
+        </div>
+      </div>
+      <p class="note">80% renewal = 100% retention</p>
+      <div class="details">Renewals closed £3M against a £3M quota (125%). 80% renewal rate equals 100% retention.</div>
+    </div>
+    </div>
+
+    <div class="card full overall-bar">
+      <span>Yext Year 1 overall</span>
+      <span class="muted">New business + renewals</span>
+      <strong>110%</strong>
+    </div>
+
+    <div class="card" onclick="this.classList.toggle('open')">
+      <h2>Yext Current Year</h2>
+      <div style="display:flex; align-items:center; gap:24px; flex-wrap:wrap;">
+        <div style="display:flex; gap:28px; min-width:260px;">
+          <div class="metric">
+            <div class="val">£827K</div>
+            <div class="pct">82.7%</div>
+            <div class="lbl">Closed</div>
+          </div>
+          <div class="metric">
+            <div class="val">£1M</div>
+            <div class="lbl">New Business quota</div>
+          </div>
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <div class="progress-bar" onclick="this.classList.toggle('expanded')">
+            <div class="progress-fill" style="width: 82.7%;">
+              <span class="progress-percent">£827K</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="details">£827K new business closed against a £1M quota. Overall tracking ~80% with ~30% remaining in Q4.</div>
+    </div>
+
+    <div class="card">
+      <h2>New Logo vs Upsell</h2>
+      <div class="chart-wrap">
+        <canvas id="logoChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card full logos">
+      <h2>Yext — Logos & ICP</h2>
+      <div class="logo-row">
+        <div class="logo-badge">IMO Car Wash</div>
+        <div class="logo-badge">Barclays</div>
+        <div class="logo-badge">M&S</div>
+        <div class="logo-badge">Utilita</div>
+        <div class="logo-badge">Nando’s</div>
+        <div class="logo-badge">Bupa</div>
+      </div>
+      <div class="icp"><strong>ICP:</strong> CMO · CDO · Marketing · Digital · IT · Operations</div>
+    </div>
+
+    <div class="card full charts-block">
+      <h2>Attainment Summary</h2>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px;">
+        <div class="chart-wrap">
+          <canvas id="summaryChart"></canvas>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="yextMixChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2>12-Month Performance Trajectory</h2>
+      <div class="chart-wrap" style="height:220px;">
+        <canvas id="monthlyTrajectory"></canvas>
+      </div>
+      <div class="details" style="max-height:0; margin-top:0;">Projected monthly closed revenue based on historical ramp performance. Assumes a typical enterprise ramp with stronger close rates in Q3–Q4.</div>
+    </div>
+
+    <div class="card full trajectory-page">
+      <h2>Projected Trajectory — SpaceX Sales Role</h2>
+      <div class="highlights">
+        <div class="highlight"><strong>Year 1 (Ramp):</strong> NICE closed £870K — 145% of the £600K ramp and 72.5% of the £1.2M actual quota. Yext new business closed £952K — 190.4% of the £500K ramp and 95.2% of the £1M actual quota.</div>
+        <div class="highlight"><strong>Year 2:</strong> Likely 90–100%+ on a full quota. Consistent delivery once the book is established (91.7% at NICE Year 2, 125% on Yext renewals).</div>
+        <div class="highlight"><strong>New Business vs Renewals:</strong> Strong ability to build new logo pipeline while protecting existing revenue. Mix has already shifted toward more new business.</div>
+        <div class="highlight"><strong>Enterprise Motion:</strong> Proven selling into CTO/CIO/CMO-level stakeholders across complex accounts. Transferable to SpaceX’s technical and operational buyers.</div>
+        <div class="highlight"><strong>Q4 Discipline:</strong> Tracks with clear pipeline visibility and closes the remaining portion of quota. Low risk of late-year misses.</div>
+      </div>
+      <div class="chart-wrap" style="margin-top:12px;">
+        <canvas id="trajectoryChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <footer>Charisse Patulot • Prepared for SpaceX sales role discussion</footer>
+</div>
+
+<script>
+const knowledge = [
+  { keys: ['nice', 'year 1', '870', '600', '145', '72.5', 'ramp'], answer: "In her first year at NICE she closed £870K. That’s 145% of the £600K ramp quota, and 72.5% of the £1.2M actual quota." },
+  { keys: ['nice', 'year 2', '1.1', '1.2', '91.7'], answer: "Second year at NICE she closed £1.1M against the full £1.2M quota, so 91.7%. Consistent performance on the same target." },
+  { keys: ['yext', 'year 1', 'renewal', '125', '3m'], answer: "On renewals at Yext last year she closed the full £3M against a £3M quota and actually landed at 125%. Strong book." },
+  { keys: ['yext', 'new business', 'nb', '952', '500', '190', 'ramp', '95'], answer: "Yext Year 1 new business closed-won was £952K. That’s 190.4% of the £500K ramp quota, and 95.2% of the £1M actual quota." },
+  { keys: ['overall', '110', 'combined'], answer: "Yext Year 1 overall attainment was 110% across new business and renewals." },
+  { keys: ['current', '827', '1m', '1 mil', '82.7', 'tracking', '80'], answer: "This year at Yext she’s closed £827K of new business against a £1M quota so far. Overall she’s tracking around 80%, with about 30% still to go in Q4." },
+  { keys: ['mix', '50/50', '60/40', 'shift'], answer: "Last year the mix was pretty even — 50/50 between renewals and new business. This year it’s shifted more toward new business, around 60/40." },
+  { keys: ['q4', 'remaining', '30', 'pipeline'], answer: "There’s still roughly 30% left to close in Q4. The pipeline’s there to support it." },
+  { keys: ['logo', 'client', 'account', 'weatherbys', 'cmc', 'barclays', 'nandos', 'bupa'], answer: "At NICE she worked with Weatherbys Bank, CMC Markets, and a betting company. At Yext it’s been IMO Car Wash, Barclays, M&S, Utilita, Nando’s, and Bupa." },
+  { keys: ['icp', 'buyer', 'stakeholder', 'cto', 'cio', 'cmo'], answer: "At NICE she was mostly selling to CTO, CIO, CDO, COO, IT, Contact Centre, Digital, and Operations. At Yext the buyers were more on the CMO, CDO, Marketing, Digital, IT, and Operations side." },
+  { keys: ['trajectory', 'improvement', 'growth', 'summary', 'overall', 'how'], answer: "She’s owned multi-million pound books at both places. Strong renewals (125% on £3M) and consistent new business, including on ramp quotas. This year is tracking around 80% with clear pipeline left for Q4." }
+];
+
+function getAnswer(q) {
+  const lower = q.toLowerCase();
+  for (const item of knowledge) {
+    if (item.keys.some(k => lower.includes(k))) return item.answer;
+  }
+  return "I can tell you about her NICE numbers, Yext renewals and new business, this year’s progress, the mix shift, the logos she worked with, or who she was selling to. Just ask.";
+}
+
+function addMessage(text, isUser) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + (isUser ? 'user' : 'bot');
+  div.textContent = text;
+  document.getElementById('messages').appendChild(div);
+  div.scrollIntoView({ behavior: 'smooth' });
+}
+
+function ask(text) {
+  document.getElementById('query').value = text;
+  send();
+}
+
+function send() {
+  const input = document.getElementById('query');
+  const q = input.value.trim();
+  if (!q) return;
+  addMessage(q, true);
+  input.value = '';
+  setTimeout(() => {
+    addMessage(getAnswer(q), false);
+  }, 400);
+}
+
+// Trajectory Projection
+new Chart(document.getElementById('trajectoryChart'), {
+  type: 'line',
+  data: {
+    labels: ['NICE Y1', 'NICE Y2', 'Yext NB', 'Yext overall', 'Next role'],
+    datasets: [{
+      label: 'Attainment %',
+      data: [145, 91.7, 190.4, 110, 110],
+      borderColor: '#f43f5e',
+      backgroundColor: 'rgba(244, 63, 94, 0.12)',
+      borderWidth: 2.5,
+      pointBackgroundColor: '#0f4c81',
+      pointRadius: 5,
+      tension: 0.3,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Projected Attainment Trajectory', font: { size: 13 }, color: '#0f172a' }
+    },
+    scales: {
+      y: { beginAtZero: true, max: 220, ticks: { callback: v => v + '%', color: '#64748b' }, grid: { color: '#e2e8f0' } },
+      x: { ticks: { color: '#0f172a' }, grid: { display: false } }
+    }
+  }
+});
+
+// 12-Month Trajectory
+new Chart(document.getElementById('monthlyTrajectory'), {
+  type: 'line',
+  data: {
+    labels: ['M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12'],
+    datasets: [{
+      label: 'Projected Closed',
+      data: [40, 46, 52, 58, 64, 72, 80, 88, 98, 108, 120, 132],
+      borderColor: '#8b5cf6',
+      backgroundColor: 'rgba(139, 92, 246, 0.15)',
+      borderWidth: 2.5,
+      pointRadius: 3,
+      tension: 0.35,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Projected Monthly Closed (£K)', font: { size: 13 }, color: '#0f172a' }
+    },
+    scales: {
+      y: { beginAtZero: true, ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' } },
+      x: { ticks: { color: '#0f172a', font: { size: 10 } }, grid: { display: false } }
+    }
+  }
+});
+
+// Summary Attainment Chart
+// Summary Attainment Chart with gradients
+const summaryCtx = document.getElementById('summaryChart').getContext('2d');
+const gradients = [
+  summaryCtx.createLinearGradient(0, 0, 0, 200),
+  summaryCtx.createLinearGradient(0, 0, 0, 200),
+  summaryCtx.createLinearGradient(0, 0, 0, 200),
+  summaryCtx.createLinearGradient(0, 0, 0, 200)
+];
+gradients[0].addColorStop(0, '#60a5fa'); gradients[0].addColorStop(1, '#2563eb');
+gradients[1].addColorStop(0, '#38bdf8'); gradients[1].addColorStop(1, '#0284c7');
+gradients[2].addColorStop(0, '#4ade80'); gradients[2].addColorStop(1, '#16a34a');
+gradients[3].addColorStop(0, '#34d399'); gradients[3].addColorStop(1, '#059669');
+
+new Chart(document.getElementById('summaryChart'), {
+  type: 'bar',
+  data: {
+    labels: ['NICE Y1', 'NICE Y2', 'Yext Renewals', 'Yext NB'],
+    datasets: [
+      {
+        type: 'bar',
+        label: 'Attainment %',
+        data: [145, 91.7, 125, 190.4],
+        backgroundColor: gradients,
+        borderRadius: 6,
+        order: 2
+      },
+      {
+        type: 'line',
+        label: 'Trend',
+        data: [145, 91.7, 125, 190.4],
+        borderColor: '#8b5cf6',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#8b5cf6',
+        pointRadius: 4,
+        tension: 0.3,
+        order: 1,
+        fill: false
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Attainment by Period', font: { size: 13 }, color: '#0f172a' }
+    },
+    scales: {
+      y: { beginAtZero: true, max: 220, ticks: { callback: v => v + '%', color: '#64748b' }, grid: { color: '#e2e8f0' } },
+      x: { ticks: { color: '#0f172a', font: { size: 11 } }, grid: { display: false } }
+    }
+  }
+});
+
+// Yext Mix Chart
+new Chart(document.getElementById('yextMixChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Renewals', 'New Business'],
+    datasets: [{
+      data: [50, 50],
+      backgroundColor: ['#3b82f6', '#ec4899'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+      title: { display: true, text: 'Yext Year 1 Mix', font: { size: 13 }, color: '#0f172a' }
+    }
+  }
+});
+
+new Chart(document.getElementById('logoChart'), {
+  type: 'bar',
+  data: {
+    labels: ['NICE', 'Yext'],
+    datasets: [
+      { label: 'New logo', data: [100, 87], backgroundColor: '#16a34a', borderRadius: 4 },
+      { label: 'Upsell', data: [0, 13], backgroundColor: '#94a3b8', borderRadius: 4 }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+      title: { display: true, text: 'New logo vs upsell', font: { size: 13 }, color: '#0f172a' }
+    },
+    scales: {
+      x: { stacked: true, max: 100, ticks: { callback: v => v + '%', color: '#64748b' }, grid: { color: '#e2e8f0' } },
+      y: { stacked: true, ticks: { color: '#0f172a' }, grid: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>
