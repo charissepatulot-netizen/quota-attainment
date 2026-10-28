@@ -880,7 +880,7 @@ function reply(q) {
     var score = 0;
     var k = 0;
     while (keys.length > k) {
-      if (lower.indexOf(keys[k]) > -1) score = score + 1;
+      if (lower.indexOf(keys[k]) > -1) score = score + keys[k].length;
       k = k + 1;
     }
     if (score > best) {
